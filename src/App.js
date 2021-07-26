@@ -1,26 +1,24 @@
+import React, { useEffect, useState } from 'react';
+
+import * as L from 'leaflet';
+import { MapContainer, TileLayer, Polyline, useMapEvents } from 'react-leaflet';
+import { useLeafletContext } from '@react-leaflet/core';
+import movingMarker from './MovingMarker';
+
 import './App.css';
 
-import { MapContainer, TileLayer, Polyline, useMapEvents } from 'react-leaflet';
-import { useEffect, useState } from 'react';
-import * as L from 'leaflet';
-
-import movingMarker from './MovingMarker';
-import { useLeafletContext } from '@react-leaflet/core';
-
 const paths = [[51.507222, -0.1275], [48.8567, 2.3508],[41.9, 12.5], [52.516667, 13.383333], [44.4166,26.1]];
-
-
 let marker = null;
 
 function EventComponent(props) {
-  const map = useMapEvents({
-    zoomstart: (evt) => {
+  useMapEvents({
+    zoomstart: () => {
       props.setIsPaused(true);
     },
-    zoom:(evt) => {
+    zoom:() => {
       props.setIsPaused(false);
     },
-    zoomend: (location) => {
+    zoomend: () => {
       // props.setIsPaused(false);
     },
   })
@@ -49,7 +47,7 @@ function App() {
         <MovingMarker 
           paused={paused}
           path={paths}
-          duration={40000}
+          duration={30000}
         />
 
         <EventComponent setIsPaused={val => setPaused(val)}/>
