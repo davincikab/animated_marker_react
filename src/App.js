@@ -1,24 +1,93 @@
-import logo from './logo.svg';
 import './App.css';
 
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import { MapContainer, TileLayer, Polyline, useMapEvents } from 'react-leaflet';
+import { useEffect, useState } from 'react';
+import * as L from 'leaflet';
+
+import movingMarker from './MovingMarker';
+import { useLeafletContext } from '@react-leaflet/core';
+
+const paths = [[51.507222, -0.1275], [48.8567, 2.3508],[41.9, 12.5], [52.516667, 13.383333], [44.4166,26.1]];
+
+
+let marker = null;
+
+function EventComponent(props) {
+  const map = useMapEvents({
+    zoomstart: (evt) => {
+      props.setIsPaused(true);
+    },
+    zoom:(evt) => {
+      props.setIsPaused(false);
+    },
+    zoomend: (location) => {
+      // props.setIsPaused(false);
+    },
+  })
+
+  return null;
+}
 
 function App() {
+  const [paused, setPaused ] = useState(false);
+
+  console.log(L.version);
+
   return (
     <div className="App">
-      <MapContainer center={[51.505, -0.09]} zoom={13} scrollWheelZoom={false}>
+      <MapContainer 
+        id="map-container" 
+        center={[45.19147011,5.71453741]} 
+        zoom={5} 
+        scrollWheelZoom={false}
+      >
         <TileLayer
           attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <Marker position={[51.505, -0.09]}>
-          <Popup>
-            A pretty CSS3 popup. <br /> Easily customizable.
-          </Popup>
-        </Marker>
+        <Polyline positions={paths} pathOptions={{color:'red', weight:2}}/>
+        <MovingMarker 
+          paused={paused}
+          path={paths}
+          duration={40000}
+        />
+
+        <EventComponent setIsPaused={val => setPaused(val)}/>
       </MapContainer>
     </div>
   );
+}
+
+const MovingMarker = ({ path, duration, paused }) => {
+  const context = useLeafletContext();
+
+  useEffect(() => {
+    const container = context.layerContainer || context.map;
+
+    if(paused) {
+      marker.setOpacity(0);
+      container.addLayer(marker);
+
+    } else if(!paused && marker) {
+      marker.setOpacity(1); 
+
+      container.addLayer(marker);
+    }
+    else {
+      marker = movingMarker(path, duration, {});
+      marker.start();
+
+      container.addLayer(marker);
+    }
+    
+
+    return () => {
+      container.removeLayer(marker);
+    }
+  }, [paused]);
+
+  return null;
+
 }
 
 export default App;
