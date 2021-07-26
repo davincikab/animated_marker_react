@@ -82,7 +82,7 @@ const MovingMarker = ({ path, duration, paused }) => {
     return () => {
       container.removeLayer(marker);
     }
-  }, [paused]);
+  });
 
   return null;
 
